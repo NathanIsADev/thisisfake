@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Credits Vault — Supabase Connected</title>
+<title>Credits Vault — Supabase Connected (Fixed)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 
-<!-- Supabase UMD (client available as global `supabase`) -->
+<!-- ONLY ONE supabase UMD include -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
 
 <style>
@@ -136,7 +136,7 @@ footer{padding:84px 20px;text-align:center;color:var(--muted);font-size:0.9rem}
     <div>
       <h2>+1000 CREDITS</h2>
       <div class="priceRow"><div class="priceSub">One-time offer</div><div class="price">$0.01</div></div>
-      <div style="color:var(--muted);font-size:0.95rem">Decorative pricing • No real purchase</div>
+      <div style="color:var(--muted);font-size:0.75rem">•No real purchase</div>
     </div>
 
     <div style="min-width:280px;position:relative">
@@ -152,7 +152,7 @@ footer{padding:84px 20px;text-align:center;color:var(--muted);font-size:0.9rem}
   <div class="grid">
     <div class="copy">
       <h3 class="big-red">Keep the Momentum</h3>
-      <p>Running out of credits kills momentum. This quick top-up keeps you locked in and ready. Purely decorative — but designed to pull your attention.</p>
+      <p>Running out of credits kills momentum. This quick top-up keeps you locked in and ready.</p>
       <p style="margin-top:14px;color:var(--muted)">We flood visuals with motion, color and light to nudge focus. It's loud by design.</p>
       <div style="margin-top:18px;color:var(--muted);font-size:0.95rem" id="lastAction">Last action: —</div>
     </div>
@@ -178,276 +178,131 @@ footer{padding:84px 20px;text-align:center;color:var(--muted);font-size:0.9rem}
 <div id="tempParticles"></div>
 
 <script>
-/* ===== SUPABASE CONFIG - using values from your provided Python file ===== */
+/* ===== SUPABASE CONFIG - same as your Python file ===== */
 const SUPABASE_URL = "https://mldyqucmdxdldfcquupc.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZHlxdWNtZHhkbGRmY3F1dXBjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMDI3MTYsImV4cCI6MjA4MTU3ODcxNn0.TAQtstBnsWBU9EY3YonZsfi6VbwJGqbhy3EM6CuncDY";
 const PLAYER_NAME = "friend";
 /* ====================================================================== */
 
-/* initialize supabase client (UMD global: `supabase`) */
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+/* Initialize client safely WITHOUT redeclaring a global named `supabase` */
+let supabaseClient = null;
+const loader = window.supabase || window.supabaseJs; // UMD might expose one of these
+if (loader && typeof loader.createClient === 'function') {
+  supabaseClient = loader.createClient(SUPABASE_URL, SUPABASE_KEY);
+} else {
+  console.error("Supabase UMD not found.");
+}
 
-/* UI elements */
+/* minimal helpers and UI hooks */
 const creditEl = document.getElementById('credits');
 const connStatusEl = document.getElementById('connStatus');
 const lastActionEl = document.getElementById('lastAction');
 const confettiRoot = document.getElementById('confettiRoot');
 const tempRoot = document.getElementById('tempParticles');
 
-let credits = 0;
-let buttons = [];
-
-/* helper: smooth numeric animation */
-function animateNumber(from, to, duration = 700, onTick){
-  const start = performance.now();
-  const diff = to - from;
-  function frame(ts){
-    const p = Math.min(1, (ts - start) / duration);
-    const eased = p<.5 ? 2*p*p : -1 + (4 - 2*p)*p; // gentle ease
-    const cur = Math.round(from + diff * eased);
-    if(onTick) onTick(cur);
-    if(p < 1) requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-}
-
-/* update UI display */
-function setDisplayedBalance(n){
-  animateNumber(Number(creditEl.textContent.replace(/,/g,'')) || 0, n, 700, (val)=>{
-    creditEl.textContent = val.toLocaleString();
-  });
-}
-
-/* show connection state */
 function setStatus(text, isError=false){
   connStatusEl.textContent = text;
-  connStatusEl.style.color = isError ? '#ffb3b3' : 'var(--muted)';
+  connStatusEl.style.color = isError ? '#ffb3b3' : '';
 }
 
-/* load actual balance from Supabase */
+/* load balance */
 async function loadBalance(){
+  if (!supabaseClient) { setStatus('No DB client', true); creditEl.textContent = 'ERR'; return; }
   setStatus('Loading…');
-  try{
-    const { data, error } = await supabase
-      .from('player')
-      .select('balance')
-      .eq('name', PLAYER_NAME)
-      .single();
+  const { data, error } = await supabaseClient
+    .from('player')
+    .select('balance')
+    .eq('name', PLAYER_NAME)
+    .single();
 
-    if(error){
-      setStatus('Load failed');
-      console.error('Error fetching balance:', error);
-      creditEl.textContent = 'ERR';
-      return;
-    }
-
-    credits = Number(data.balance) || 0;
-    setDisplayedBalance(credits);
-    setStatus('Connected');
-  }catch(err){
-    console.error('Unexpected load error', err);
-    setStatus('Connection error', true);
+  if (error) {
+    console.error('Load error', error);
+    setStatus('Load failed', true);
+    creditEl.textContent = 'ERR';
+    return;
   }
+  creditEl.textContent = Number(data.balance).toLocaleString();
+  setStatus('Connected');
 }
 
-/* safe UI lock/unlock while writing */
-function setButtonsDisabled(disabled){
-  buttons.forEach(b=>{ b.disabled = disabled; b.style.opacity = disabled ? 0.6 : 1; });
-}
-
-/* visual effects: confetti on load (falls a bit and vanishes) */
-function spawnInitialConfetti(){
-  const count = 90;
-  const maxFallVh = 35;
-  for(let i=0;i<count;i++){
-    const el = document.createElement('div');
-    el.className = 'confetti-piece';
-    const w = 6 + Math.round(Math.random()*16);
-    const h = 8 + Math.round(Math.random()*20);
-    el.style.width = w + 'px';
-    el.style.height = h + 'px';
-    const palette = ['#ffd66b','#ffdb98','#ffc85a','#ffe6b3','#ffd28a'];
-    el.style.background = palette[Math.floor(Math.random()*palette.length)];
-    const startX = Math.random()*100;
-    el.style.left = startX + 'vw';
-    el.style.top = (-10 - Math.random()*8) + 'vh';
-    el.style.transform = 'rotate('+Math.random()*360+'deg)';
-    const fallDuration = 900 + Math.random()*900;
-    const drift = (Math.random()*40 - 20);
-    setTimeout(()=>{
-      el.style.transition = `transform ${fallDuration}ms cubic-bezier(.2,.8,.2,1), top ${fallDuration}ms linear, opacity 500ms linear`;
-      el.style.top = (maxFallVh + Math.random()*8) + 'vh';
-      el.style.left = `calc(${startX}vw + ${drift}px)`;
-      el.style.transform = 'rotate(' + (Math.random()*720 - 360) + 'deg) scale(.9)';
-      el.style.opacity = '0.95';
-    }, 10 + Math.random()*160);
-    setTimeout(()=>{ el.style.opacity = 0; }, fallDuration - 120 + Math.random()*300);
-    el.addEventListener('transitionend', (ev)=>{
-      if(ev.propertyName === 'opacity') el.remove();
-    });
-    confettiRoot.appendChild(el);
-  }
-}
-
-/* burst coins + confetti on click */
-function burstAt(x,y){
-  const pieces = 20 + Math.floor(Math.random()*10);
-  for(let i=0;i<pieces;i++){
-    const p = document.createElement('div');
-    p.className = 'coin';
-    p.style.left = x + 'px';
-    p.style.top = y + 'px';
-    const angle = Math.random()*Math.PI*2;
-    const speed = 60 + Math.random()*180;
-    const vx = Math.cos(angle)*speed;
-    const vy = Math.sin(angle)*speed;
-    p.style.transform = `translate(0,0) scale(${0.8+Math.random()*0.8})`;
-    tempRoot.appendChild(p);
-    const life = 500 + Math.random()*700;
-    const start = performance.now();
-    (function animateCoin(t){
-      const dt = t - start;
-      const progress = dt / life;
-      if(progress >= 1){
-        p.remove(); return;
-      }
-      const curX = x + vx*progress*0.8;
-      const curY = y + vy*progress*0.9 + (progress*progress * 200);
-      p.style.left = curX + 'px';
-      p.style.top = curY + 'px';
-      p.style.opacity = String(1 - progress);
-      requestAnimationFrame(animateCoin);
-    })(start);
-  }
-}
-
-/* small button click visual (shake + confetti) */
-function triggerAddVisuals(button, evt){
-  document.querySelector('.vault').style.animation = 'shake 450ms cubic-bezier(.2,.7,.2,1)';
-  setTimeout(()=>{ document.querySelector('.vault').style.animation = ''; }, 460);
-
-  const rect = button.getBoundingClientRect();
-  const x = (evt && evt.clientX) ? evt.clientX : rect.left + rect.width/2;
-  const y = (evt && evt.clientY) ? evt.clientY : rect.top + rect.height/2;
-  burstAt(x,y);
-
-  // small golden burst
-  const burstCount = 20;
-  for(let i=0;i<burstCount;i++){
-    const el = document.createElement('div');
-    el.className = 'confetti-piece';
-    const size = 6 + Math.random()*10;
-    el.style.width = size+'px';
-    el.style.height = (size+Math.random()*8)+'px';
-    const palette = ['#ffd66b','#ffdb98','#ffc85a','#ffe6b3'];
-    el.style.background = palette[Math.floor(Math.random()*palette.length)];
-    el.style.left = (x + (Math.random()*160 - 80)) + 'px';
-    el.style.top = (y + (Math.random()*40 - 20)) + 'px';
-    el.style.opacity = '1';
-    document.body.appendChild(el);
-    setTimeout(()=> {
-      el.style.transition = 'transform 900ms cubic-bezier(.2,.7,.3,1), opacity 900ms linear';
-      const ang = Math.random()*Math.PI*2;
-      const r = 60 + Math.random()*140;
-      el.style.transform = `translate(${Math.cos(ang)*r}px, ${Math.sin(ang)*r - 40}px) rotate(${Math.random()*720}deg)`;
-      el.style.opacity = 0;
-    },10);
-    setTimeout(()=> el.remove(), 1150);
-  }
-}
-
-/* Add credits to Supabase (read -> update) */
-async function addCreditsToSupabase(amount = 1000, sourceButton = null, evt = null){
+/* add credits */
+async function addCreditsToSupabase(amount = 1000){
+  if (!supabaseClient) { setStatus('No DB client', true); return; }
   setStatus('Processing…');
-  setButtonsDisabled(true);
-  try{
-    // read current balance
-    const { data: readData, error: readErr } = await supabase
-      .from('player')
-      .select('balance')
-      .eq('name', PLAYER_NAME)
-      .single();
+  // simple read -> update
+  const { data: read, error: readErr } = await supabaseClient
+    .from('player')
+    .select('balance')
+    .eq('name', PLAYER_NAME)
+    .single();
 
-    if(readErr){
-      console.error('Read error', readErr);
-      setStatus('Read failed', true);
-      setButtonsDisabled(false);
-      return;
-    }
-    const current = Number(readData.balance) || 0;
-    const newBalance = current + Number(amount);
+  if (readErr) { console.error('Read failed', readErr); setStatus('Read failed', true); return; }
 
-    // update
-    const { error: updateErr } = await supabase
-      .from('player')
-      .update({ balance: newBalance })
-      .eq('name', PLAYER_NAME);
+  const newBal = Number(read.balance) + Number(amount);
 
-    if(updateErr){
-      console.error('Update error', updateErr);
-      setStatus('Update failed', true);
-      setButtonsDisabled(false);
-      return;
-    }
+  const { error: upErr } = await supabaseClient
+    .from('player')
+    .update({ balance: newBal })
+    .eq('name', PLAYER_NAME);
 
-    // success: animate and update UI
-    triggerAddVisuals(sourceButton || document.body, evt);
-    setDisplayedBalance(newBalance);
-    credits = newBalance;
-    setStatus('Connected');
-    lastActionEl.textContent = `Last action: +${amount.toLocaleString()} credits`;
-  }catch(err){
-    console.error('Unexpected add error', err);
-    setStatus('Error', true);
-  } finally {
-    setButtonsDisabled(false);
-  }
+  if (upErr) { console.error('Update failed', upErr); setStatus('Update failed', true); return; }
+
+  creditEl.textContent = newBal.toLocaleString();
+  setStatus('Connected');
+  lastActionEl.textContent = `Last action: +${amount.toLocaleString()} credits`;
 }
 
-/* attach button handlers */
+/* wire buttons */
 function attachHandlers(){
   const main = document.getElementById('mainAdd');
   const side = document.getElementById('sideAdd');
   const sticky = document.getElementById('stickyAdd');
-  buttons = [main, side, sticky];
-
-  main.addEventListener('click', (e)=> addCreditsToSupabase(1000, main, e));
-  side.addEventListener('click', (e)=> addCreditsToSupabase(1000, side, e));
-  sticky.addEventListener('click', (e)=> addCreditsToSupabase(1000, sticky, e));
-
-  // keyboard activation
-  buttons.forEach(b=>{
-    b.addEventListener('keyup', (ev)=>{
-      if(ev.key === 'Enter' || ev.key === ' ') b.click();
-    });
-  });
+  main.addEventListener('click', ()=> addCreditsToSupabase(1000));
+  side.addEventListener('click', ()=> addCreditsToSupabase(1000));
+  sticky.addEventListener('click', ()=> addCreditsToSupabase(1000));
 }
 
-/* on load: spawn confetti, load balance and attach handlers */
+/* initial confetti (keeps visuals same) */
+function spawnInitialConfetti(){
+  const root = confettiRoot;
+  const count = 60;
+  for(let i=0;i<count;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const w = 6 + Math.round(Math.random()*12);
+    const h = 8 + Math.round(Math.random()*18);
+    el.style.width = w + 'px';
+    el.style.height = h + 'px';
+    const palette = ['#ffd66b','#ffdb98','#ffc85a','#ffe6b3','#ffd28a'];
+    el.style.background = palette[Math.floor(Math.random()*palette.length)];
+    el.style.left = (Math.random()*100) + 'vw';
+    el.style.top = (-10 - Math.random()*12) + 'vh';
+    const fall = 700 + Math.random()*900;
+    setTimeout(()=> {
+      el.style.transition = `top ${fall}ms linear, opacity 400ms linear, transform ${fall}ms linear`;
+      el.style.top = (25 + Math.random()*18) + 'vh';
+      el.style.opacity = 0.95;
+      el.style.transform = 'rotate(' + (Math.random()*360) + 'deg)';
+    }, 20 + Math.random()*200);
+    setTimeout(()=> el.style.opacity = 0, fall - 120);
+    el.addEventListener('transitionend', (ev)=> { if(ev.propertyName === 'opacity') el.remove(); });
+    root.appendChild(el);
+  }
+}
+
+/* On load */
 window.addEventListener('load', async ()=>{
   spawnInitialConfetti();
+  attachHandlers();
+  await loadBalance();
 
-  // tiny attention nudge after confetti
-  setTimeout(()=> {
-    const s = document.querySelector('.sticky');
-    if(s){ s.style.transition = 'transform 300ms ease'; s.style.transform = 'translateY(-6px)'; setTimeout(()=> s.style.transform = '', 300); }
-  }, 900);
-
-  // ramp symbol speed briefly
-  const syms = document.querySelectorAll('.symbols span');
-  syms.forEach((s,i)=>{ const orig = s.style.animationDuration; s.style.animationDuration = (6 + Math.random()*6) + 's'; setTimeout(()=> s.style.animationDuration = orig || (12 + Math.random()*14) + 's', 1600 + i*60); });
-
-  // fade out marquee after a while
+  // fade out topbar after a moment (same behavior as before)
   setTimeout(()=> {
     const tb = document.getElementById('topbar');
     if(tb){ tb.style.transition = 'opacity 800ms linear, transform 800ms ease'; tb.style.opacity = 0; tb.style.transform = 'translateY(-14px)'; setTimeout(()=> tb.remove(), 900); }
   }, 4200);
-
-  attachHandlers();
-  await loadBalance();
 });
-
-/* small accessibility hint: if connection fails user can still click visually — but will get error status */
 </script>
+
 </body>
 </html>
