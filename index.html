@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Credits Vault — Overstimulate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#060102;
+    --black:#050406;
+    --deep:#2a0000;
+    --red:#b40000;
+    --hot:#ff2a2a;
+    --gold:#ffd66b;
+    --muted:#b08b8b;
+    --glass: rgba(255,255,255,0.03);
+  }
+  *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  html,body{height:100%;margin:0;background:
+      radial-gradient(1200px 600px at 10% 10%, rgba(180,0,0,0.08), transparent 8%),
+      radial-gradient(800px 600px at 90% 80%, rgba(255,180,100,0.03), transparent 8%),
+      linear-gradient(180deg,#120002 0%, var(--bg) 40%, #0a0506 100%);
+    color: #fff; overflow-x:hidden;}
+
+/* URGENCY MARQUEE */
+.topbar{
+  position:fixed;left:0;right:0;top:0;height:34px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(90deg, rgba(180,0,0,0.22), rgba(0,0,0,0.12));
+  z-index:140;
+  box-shadow:0 6px 30px rgba(0,0,0,0.6);
+  overflow:hidden;
+}
+.marquee{
+  display:inline-block;padding:6px 12px;border-radius:999px;font-weight:800;color:var(--gold);
+  background:linear-gradient(90deg, rgba(255,210,110,0.06), rgba(255,255,255,0.02));
+  animation:marq 6s linear infinite;
+  letter-spacing:1px;
+}
+@keyframes marq { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)}}
+
+/* Floating symbols (fast & jittery) */
+.symbols{position:fixed;inset:0;pointer-events:none;z-index:0}
+.symbols span{position:absolute;font-size:2.6rem;opacity:0.09;transform:translateY(120vh); animation:float linear infinite; filter:drop-shadow(0 10px 30px rgba(0,0,0,0.6));}
+@keyframes float{from{transform:translateY(120vh) rotate(0deg)} to{transform:translateY(-120vh) rotate(720deg)}}
+
+/* header */
+.header{padding:120px 20px 40px;text-align:center;position:relative;z-index:2}
+h1{font-size:clamp(2.8rem,6vw,4.2rem);margin:0;font-weight:900;letter-spacing:2px;
+  text-shadow:0 0 30px rgba(255,40,40,0.16); color: #fff;
+  animation:flicker 3.6s infinite;}
+@keyframes flicker{0%{opacity:1}8%{opacity:.7}10%{opacity:1}20%{opacity:.85}100%{opacity:1}}
+.lead{color:var(--muted);margin-top:12px;font-size:1.05rem}
+
+/* balance chip */
+.balance{display:inline-block;margin-top:22px;padding:10px 18px;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);
+  box-shadow:0 8px 30px rgba(200,80,80,0.08),0 0 28px rgba(255,110,110,0.03);
+  font-weight:800;color:var(--gold);letter-spacing:1px}
+
+/* Central CTA area 'vault' */
+.vault{
+  margin:60px auto 40px;max-width:680px;padding:36px;border-radius:18px;background:
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.15));
+  box-shadow: 0 40px 140px rgba(0,0,0,0.8);position:relative;z-index:2;overflow:hidden;
+}
+.vault::before{
+  content:"";position:absolute;inset:auto -20% -20% -20%;background:conic-gradient(from 90deg at 50% 50%, rgba(255,80,80,0.02), rgba(255,200,60,0.02));
+  transform:rotate(6deg);filter:blur(40px);opacity:0.9;pointer-events:none;
+}
+
+/* shiny sweep */
+.vault .sweep{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+  transform:translateX(-110%);animation:shine 3.2s linear infinite}
+@keyframes shine{from{transform:translateX(-110%)}50%{transform:translateX(110%)}to{transform:translateX(310%)}}
+
+/* Title and price */
+.vault h2{margin:0;font-size:2.2rem;letter-spacing:1px}
+.priceRow{display:flex;align-items:center;justify-content:space-between;margin:14px 0;color:var(--muted)}
+.priceRow .price{font-weight:900;color:var(--gold);font-size:1.15rem}
+
+/* CTAs — VERY AGGRESSIVE */
+.btn{
+  display:inline-block;padding:18px 26px;border-radius:14px;font-weight:900;border:none;cursor:pointer;
+  font-size:1.25rem;letter-spacing:1px;position:relative;overflow:hidden;
+  box-shadow:0 20px 60px rgba(180,20,20,0.18), 0 0 60px rgba(255,40,40,0.06);
+  transition:transform .12s ease;
+}
+.btn:active{transform:scale(.98)}
+.ctaPrimary{width:100%;background:linear-gradient(90deg,var(--hot),#ff6b6b);color:#180000;box-shadow:0 0 40px rgba(255,40,40,0.5);animation:pulse 1.2s infinite}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)}}
+
+/* CTA glow halo */
+.halo{position:absolute;inset:-30px;filter:blur(36px);opacity:.6;pointer-events:none;background:radial-gradient(circle at 50% 40%, rgba(255,200,60,0.14), transparent 25%)}
+
+/* sticky bottom urgent CTA */
+.sticky{
+  position:fixed;left:18px;right:18px;bottom:24px;padding:12px;border-radius:14px;background:linear-gradient(90deg, rgba(180,0,0,0.12), rgba(0,0,0,0.28));
+  display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:160;backdrop-filter: blur(4px);
+}
+.sticky .mini{font-weight:800;color:var(--gold);font-size:1rem}
+.sticky button{min-width:220px}
+
+/* Overstimulating side panels with rotating rings */
+.side-pulse{position:fixed;right:-140px;top:20vh;width:400px;height:400px;border-radius:50%;background:conic-gradient(from 0deg, rgba(255,80,80,0.06), transparent 30%);filter:blur(60px);transform:rotate(14deg);z-index:1}
+.side-pulse.left{left:-140px;right:auto;top:60vh;transform:rotate(-14deg)}
+
+/* Section with fake purchase and repeated exposures */
+.section{margin-top:160px;padding:120px 20px 220px;position:relative;z-index:2}
+.grid{display:grid;grid-template-columns:1fr 420px;gap:36px;max-width:1100px;margin:0 auto;align-items:start}
+.copy h3{font-size:2.1rem;margin:0 0 10px}
+.copy p{color:var(--muted);line-height:1.6}
+.fakeBox{background:linear-gradient(180deg,#1a0000,#0d0000);padding:26px;border-radius:14px;box-shadow:0 30px 100px rgba(0,0,0,0.7);position:relative;overflow:hidden}
+.fakePrice{color:var(--muted);font-weight:800;margin-bottom:12px}
+.fakePrice strong{color:var(--gold);font-size:1.15rem}
+
+/* clicking spark effects container */
+.spark-wrap{position:absolute;inset:0;pointer-events:none}
+
+/* shake animation for attention */
+@keyframes shake{0%{transform:translateY(0)}25%{transform:translateY(-6px)}50%{transform:translateY(0)}75%{transform:translateY(-3px)}100%{transform:translateY(0)}}
+
+/* very quick flashes around CTA */
+.flash{position:absolute;inset:-40px;border-radius:18px;pointer-events:none;opacity:.12;background:radial-gradient(circle at 30% 20%, rgba(255,220,100,0.12), transparent 6%), radial-gradient(circle at 70% 80%, rgba(255,80,80,0.06), transparent 20%)}
+
+/* tiny pulsing badges */
+.badge{position:absolute;top:-18px;right:18px;background:var(--gold);color:#1a0a00;padding:7px 10px;border-radius:999px;font-weight:900;box-shadow:0 8px 30px rgba(255,200,80,0.12);transform:translateY(-6px)}
+
+/* helper: visually dramatic text */
+.big-red{color:var(--hot);text-shadow:0 0 22px rgba(255,40,40,0.14);font-weight:900}
+
+/* footer */
+footer{padding:84px 20px;text-align:center;color:var(--muted);font-size:0.9rem}
+
+/* confetti pieces (generated dynamically) */
+.confetti-piece{position:fixed;width:10px;height:16px;pointer-events:none;z-index:200;border-radius:3px;transform-origin:center;opacity:1}
+
+/* tiny coin pop when credits added */
+.coin{
+  position:fixed;width:14px;height:14px;border-radius:50%;background:linear-gradient(180deg,var(--gold),#ffdd80);box-shadow:0 6px 18px rgba(0,0,0,0.4);pointer-events:none;z-index:190;
+}
+
+/* responsiveness */
+@media(max-width:880px){
+  .grid{grid-template-columns:1fr; padding:0 18px}
+  .sticky{left:10px;right:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="marquee">⚠️ LIMITED TIME — SPECIAL PRICE $0.01 — LIMITED TIME — SPECIAL PRICE $0.01</div></div>
+
+<!-- chaotic floating symbols -->
+<div class="symbols" aria-hidden="true">
+  <span style="left:5%; animation-duration:14s; font-size:3.2rem">🍒</span>
+  <span style="left:18%; animation-duration:19s; font-size:2.6rem">💎</span>
+  <span style="left:30%; animation-duration:16s; font-size:3.6rem">⑦</span>
+  <span style="left:46%; animation-duration:21s; font-size:2.8rem">🔔</span>
+  <span style="left:62%; animation-duration:15s; font-size:3.4rem">❌</span>
+  <span style="left:78%; animation-duration:17s; font-size:3.0rem">🍋</span>
+</div>
+
+<div class="side-pulse" aria-hidden="true"></div>
+<div class="side-pulse left" aria-hidden="true"></div>
+
+<header class="header">
+  <h1 class="big-red">CREDITS VAULT</h1>
+  <div class="lead">Instant top-ups. Surge your balance. Experience the thrill of staying in play.</div>
+  <div class="balance" style="margin-top:18px">BALANCE: <span id="credits">0</span> CREDITS</div>
+</header>
+
+<section class="vault" role="region" aria-label="Main purchase area">
+  <div class="sweep"></div>
+  <div style="display:flex;gap:20px;align-items:center;justify-content:space-between;position:relative">
+    <div>
+      <h2>+1000 CREDITS</h2>
+      <div class="priceRow"><div class="priceSub">One-time offer</div><div class="price">$0.01</div></div>
+      <div style="color:var(--muted);font-size:0.7rem">•No real purchase</div>
+    </div>
+
+    <div style="min-width:280px;position:relative">
+      <div class="halo" aria-hidden="true"></div>
+      <button id="mainAdd" class="btn ctaPrimary" aria-label="Add 1000 credits">ADD 1000 CREDITS</button>
+      <div class="badge">HOT</div>
+      <div class="flash" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="grid">
+    <div class="copy">
+      <h3 class="big-red">Keep the Momentum</h3>
+      <p>Running out of credits kills momentum. This quick top-up keeps you locked in and ready. Purely decorative — but designed to pull your attention.</p>
+      <p style="margin-top:14px;color:var(--muted)">We flood visuals with motion, color and light to nudge focus. It's loud by design.</p>
+    </div>
+
+    <aside class="fakeBox" aria-hidden="false">
+      <div class="fakePrice">Special Price <strong>$0.01</strong></div>
+      <button id="sideAdd" class="btn ctaPrimary" style="width:100%">ADD 1000 CREDITS</button>
+      <div class="spark-wrap" id="sparkWrap"></div>
+    </aside>
+  </div>
+</section>
+
+<footer>Demo only. No actual transactions occur. Hosted as single-file page.</footer>
+
+<!-- sticky urgent CTA -->
+<div class="sticky" role="dialog" aria-label="Quick add">
+  <div class="mini">Instant +1000 • $0.01</div>
+  <button id="stickyAdd" class="btn ctaPrimary">ADD 1000 CREDITS</button>
+</div>
+
+<!-- containers for runtime particles -->
+<div id="confettiRoot"></div>
+<div id="tempParticles"></div>
+
+<script>
+/***********************
+  CONFIG & UTIL
+***********************/
+const confettiRoot = document.getElementById('confettiRoot');
+const tempRoot = document.getElementById('tempParticles');
+let credits = 0;
+const creditEl = document.getElementById('credits');
+
+function updateCredits(n){
+  credits = n;
+  creditEl.textContent = credits.toLocaleString();
+}
+
+/***********************
+  INITIAL GOLD CONFETTI (on load)
+  - creates many DOM pieces that fall ~35vh then fade and remove
+***********************/
+function spawnInitialConfetti(){
+  const count = 90;
+  const maxFallVh = 35; // fall a bit then vanish
+  for(let i=0;i<count;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const w = 6 + Math.round(Math.random()*16);
+    const h = 8 + Math.round(Math.random()*20);
+    el.style.width = w + 'px';
+    el.style.height = h + 'px';
+    // gold-ish palette variations
+    const palette = ['#ffd66b','#ffdb98','#ffc85a','#ffe6b3','#ffd28a'];
+    el.style.background = palette[Math.floor(Math.random()*palette.length)];
+    // start position
+    const startX = Math.random()*100;
+    el.style.left = startX + 'vw';
+    el.style.top = (-10 - Math.random()*8) + 'vh';
+    el.style.transform = 'rotate('+Math.random()*360+'deg)';
+    // animation via transition
+    const fallDuration = 900 + Math.random()*900; // ms
+    const drift = (Math.random()*40 - 20);
+    setTimeout(()=>{
+      el.style.transition = `transform ${fallDuration}ms cubic-bezier(.2,.8,.2,1), top ${fallDuration}ms linear, opacity 500ms linear`;
+      // move down a bit (maxFallVh)
+      el.style.top = (maxFallVh + Math.random()*8) + 'vh';
+      el.style.left = `calc(${startX}vw + ${drift}px)`;
+      el.style.transform = 'rotate(' + (Math.random()*720 - 360) + 'deg) scale(.9)';
+      el.style.opacity = '0.95';
+    }, 10 + Math.random()*160);
+
+    // fade out shortly after reaching
+    setTimeout(()=>{
+      el.style.opacity = 0;
+    }, fallDuration - 120 + Math.random()*300);
+
+    // cleanup
+    el.addEventListener('transitionend', (ev)=>{
+      if(ev.propertyName === 'opacity') el.remove();
+    });
+    confettiRoot.appendChild(el);
+  }
+}
+
+/***********************
+  REPEATED OVERSTIMULATION:
+  - speed up floating symbols to jitter more over time
+  - shine sweep already in CSS
+***********************/
+(function randomizeSymbols(){
+  // randomize durations each load
+  const spans = document.querySelectorAll('.symbols span');
+  spans.forEach(s=>{
+    const dur = 10 + Math.random()*18;
+    s.style.animationDuration = dur + 's';
+    s.style.opacity = 0.06 + Math.random()*0.12;
+  });
+})();
+
+/***********************
+  CLICK SPARKS + POP on adding credits
+  - small burst particles + screen shake
+***********************/
+function burstAt(x,y, colorPalette){
+  const pieces = 18 + Math.floor(Math.random()*10);
+  for(let i=0;i<pieces;i++){
+    const p = document.createElement('div');
+    p.className = 'coin';
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    const angle = Math.random()*Math.PI*2;
+    const speed = 60 + Math.random()*180;
+    const vx = Math.cos(angle)*speed;
+    const vy = Math.sin(angle)*speed;
+    p.style.transform = `translate(0,0) scale(${0.8+Math.random()*0.8})`;
+    tempRoot.appendChild(p);
+    const life = 500 + Math.random()*700;
+    const start = performance.now();
+    (function animateCoin(t){
+      const dt = t - start;
+      const progress = dt / life;
+      if(progress >= 1){
+        p.remove();
+        return;
+      }
+      const curX = x + vx*progress*0.8;
+      const curY = y + vy*progress*0.9 + (progress*progress * 200);
+      p.style.left = curX + 'px';
+      p.style.top = curY + 'px';
+      p.style.opacity = String(1 - progress);
+      requestAnimationFrame(animateCoin);
+    })(start);
+  }
+}
+
+function triggerAddConfettiAndEffects(button){
+  // screen shake briefly
+    document.querySelector('.vault').style.animation = 'shake 450ms cubic-bezier(.2,.7,.2,1)';
+    setTimeout(()=>{ document.querySelector('.vault').style.animation = ''; }, 460);
+
+  // spawn coins/sparks around button
+  const rect = button.getBoundingClientRect();
+  const x = rect.left + rect.width/2;
+  const y = rect.top + rect.height/2;
+  burstAt(x,y);
+
+  // also small golden confetti burst
+  const burstCount = 20;
+  for(let i=0;i<burstCount;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const size = 6 + Math.random()*10;
+    el.style.width = size+'px';
+    el.style.height = (size+Math.random()*8)+'px';
+    const palette = ['#ffd66b','#ffdb98','#ffc85a','#ffe6b3'];
+    el.style.background = palette[Math.floor(Math.random()*palette.length)];
+    el.style.left = (x + (Math.random()*160 - 80)) + 'px';
+    el.style.top = (y + (Math.random()*40 - 20)) + 'px';
+    el.style.opacity = '1';
+    document.body.appendChild(el);
+    // outward motion
+    setTimeout(()=> {
+      el.style.transition = 'transform 900ms cubic-bezier(.2,.7,.3,1), opacity 900ms linear';
+      const ang = Math.random()*Math.PI*2;
+      const r = 60 + Math.random()*140;
+      el.style.transform = `translate(${Math.cos(ang)*r}px, ${Math.sin(ang)*r - 40}px) rotate(${Math.random()*720}deg)`;
+      el.style.opacity = 0;
+    },10);
+    setTimeout(()=> el.remove(), 1150);
+  }
+}
+
+/***********************
+  ATTACH HANDLERS
+***********************/
+const main = document.getElementById('mainAdd');
+const side = document.getElementById('sideAdd');
+const sticky = document.getElementById('stickyAdd');
+
+function addActionFrom(btn){
+  return function(e){
+    // increment credits then visual effects
+    updateCredits(credits + 1000);
+    // play burst relative to event or button
+    const rect = btn.getBoundingClientRect();
+    const centerX = rect.left + rect.width/2;
+    const centerY = rect.top + rect.height/2;
+    triggerAddConfettiAndEffects(btn);
+    // tiny click sparkle at pointer if available
+    if(e.clientX && e.clientY){
+      burstAt(e.clientX, e.clientY);
+    } else {
+      burstAt(centerX, centerY);
+    }
+  }
+}
+main.addEventListener('click', addActionFrom(main));
+side.addEventListener('click', addActionFrom(side));
+sticky.addEventListener('click', addActionFrom(sticky));
+
+/***********************
+  Spawn a heavier initial confetti once on load,
+  then remove the pieces as they fall ~35vh (handled in spawnInitialConfetti)
+***********************/
+window.addEventListener('load', ()=>{
+  spawnInitialConfetti();
+  // subtle auto nudge: brief pulse on sticky to draw eyes after confetti
+  setTimeout(()=> {
+    const s = document.querySelector('.sticky');
+    s.style.transition = 'transform 300ms ease';
+    s.style.transform = 'translateY(-6px)';
+    setTimeout(()=> s.style.transform = '', 300);
+  }, 900);
+
+  // also quickly ramp up symbol speed then back down to feel overwhelming at first
+  const syms = document.querySelectorAll('.symbols span');
+  syms.forEach((s,i)=>{
+    const orig = s.style.animationDuration;
+    s.style.animationDuration = (6 + Math.random()*6) + 's';
+    setTimeout(()=> s.style.animationDuration = orig || (12 + Math.random()*14) + 's', 1600 + i*60);
+  });
+
+  // fade out the topbar marquee after a few seconds (reduces clutter)
+  setTimeout(()=> {
+    document.querySelector('.topbar').style.transition = 'opacity 800ms linear, transform 800ms ease';
+    document.querySelector('.topbar').style.opacity = 0;
+    document.querySelector('.topbar').style.transform = 'translateY(-14px)';
+    setTimeout(()=> document.querySelector('.topbar').remove(), 900);
+  }, 4200);
+});
+
+/* Accessibility: allow keyboard activation too */
+[main,side,sticky].forEach(b=>{
+  b.addEventListener('keyup', (ev)=>{
+    if(ev.key === 'Enter' || ev.key === ' ') b.click();
+  });
+});
+</script>
+</body>
+</html>
